@@ -75,8 +75,8 @@ public class Main {
         // Try to send the quote as a push notification.
         // If this is true, then the message failed to send. In that case, try to send again and if it still
         // fails, just print the error and exit.
-        if (pushMessage(randQuote, ENV.get("SERVER_ID"))) {
-            if (pushMessage(randQuote, ENV.get("SERVER_ID"))) {
+        if (pushMessage(randQuote, ENV.get("SERVER_ID"), ENV.get("CHANNEL_ID"))) {
+            if (pushMessage(randQuote, ENV.get("SERVER_ID"), ENV.get("CHANNEL_ID"))) {
                 System.err.println("Failed to send the push notification; tried twice.");
             } else {
                 System.out.println("Successfully sent push notification on the second attempt.");
@@ -89,21 +89,32 @@ public class Main {
     /**
      * Send a notification through PushSafer with the passed in quote message. Uses the key specified in .env
      *
-     * @param message  The message with the quote in
-     * @param serverId The ID of the server the message comes from
+     * @param message   The message with the quote in
+     * @param serverId  The ID of the server the message comes from
+     * @param channelId The ID of the server the message comes from
      * @return A boolean, true if an error occurred, false otherwise
      */
-    private static boolean pushMessage(Message message, String serverId) {
+    private static boolean pushMessage(Message message, String serverId, String channelId) {
 
         try {
 
             // Form the URL, which includes the quote formatting
-            URL url = new URL(
-                    String.format("https://www.pushsafer.com/api?k=" + ENV.get("PUSHSAFER_KEY") + "&t=%s&m=%s&i=127&c=#a600ff",
-                            URLEncoder.encode(message.getContent(), StandardCharsets.UTF_8),
-                            URLEncoder.encode(String.format("Quoted by: %s", message.getAuthor().getName(serverId)),
-                                    StandardCharsets.UTF_8)
-                    ));
+            String urlString = String.format("https://www.pushsafer.com/api?k=%s&t=%s&m=%s&c=#33ffff&i=127",
+                    ENV.get("PUSHSAFER_KEY"),
+                    URLEncoder.encode(message.getContent(), StandardCharsets.UTF_8),
+                    URLEncoder.encode(String.format(
+                                    "[color=purple][size=16][b][url=https://discord" +
+                                            ".com/channels/%s/%s/%s]" +
+                                            "Message link[/url][/b][/size][/color]\n" +
+                                            "[size=15][color=blue]Quoted by: " +
+                                            "%s[/color][/size]",
+                                    serverId,
+                                    channelId,
+                                    message.getId(),
+                                    message.getAuthor().getName(serverId)),
+                            StandardCharsets.UTF_8));
+
+            URL url = new URL(urlString);
 
             // Create the connection
             HttpURLConnection conn = createPushConn(url);
