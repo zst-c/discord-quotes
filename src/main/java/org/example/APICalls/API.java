@@ -5,14 +5,15 @@ import io.github.cdimascio.dotenv.Dotenv;
 import org.example.discordObjects.User;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
+
 public class API {
+
+    private static final Dotenv ENV = Dotenv.configure().load();
 
     /**
      * Given the user's ID and the server's ID, get the nickname of the user within the server. If no username for
@@ -68,24 +69,24 @@ public class API {
     }
 
     /**
-     * Given a URL, set the POST method on it and add the PushSafer token from .env for authorisation. Then return it
+     * Given a URL, set the POST method on it and add the NTFY token from .env for authorisation. Then return it
      * as a new HttpURLConnection
      *
      * @param url The URL to connect to
      * @return An HttpURLConnection to said URL
      */
-    public static @NotNull HttpURLConnection createPushConn(@NotNull URL url) throws Exception {
+    public static @NotNull HttpURLConnection createNTFYConn(@NotNull URL url) throws Exception {
 
         try {
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
 
             conn.setDoOutput(true);
-            conn.setRequestProperty("Content-type", "application/x-www-form-urlencoded");
-
+            conn.setRequestProperty("Authorization", "Bearer " + ENV.get("NTFY_TOKEN"));
+            
             return conn;
         } catch (IOException e) {
-            throw new Exception("An error occurred when configuring a URL in createPushConn: " + e.getMessage());
+            throw new Exception("An error occurred when configuring a URL in createNTFYConn: " + e.getMessage());
         }
     }
 
@@ -103,7 +104,7 @@ public class API {
             StringBuilder response = new StringBuilder();
 
             String responseLine;
-            
+
             while ((responseLine = br.readLine()) != null) {
                 response.append(responseLine.trim());
             }

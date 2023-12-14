@@ -5,6 +5,8 @@ import com.google.gson.reflect.TypeToken;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.example.discordObjects.Message;
 
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.lang.reflect.Type;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
@@ -97,27 +99,28 @@ public class Main {
     private static boolean pushMessage(Message message, String serverId, String channelId) {
 
         try {
-
-            // Form the URL, which includes the quote formatting
-            String urlString = String.format("https://www.pushsafer.com/api?k=%s&t=%s&m=%s&c=#33ffff&i=127",
-                    ENV.get("PUSHSAFER_KEY"),
-                    URLEncoder.encode(message.getContent(), StandardCharsets.UTF_8),
-                    URLEncoder.encode(String.format(
-                                    "[color=purple][size=16][b][url=https://discord" +
-                                            ".com/channels/%s/%s/%s]" +
-                                            "Message link[/url][/b][/size][/color]\n" +
-                                            "[size=15][color=blue]Quoted by: " +
-                                            "%s[/color][/size]",
-                                    serverId,
-                                    channelId,
-                                    message.getId(),
-                                    message.getAuthor().getName(serverId)),
-                            StandardCharsets.UTF_8));
+            // Form the URL from the NTFY URL
+            String urlString = ENV.get("NTFY_SERVER");
 
             URL url = new URL(urlString);
 
             // Create the connection
-            HttpURLConnection conn = createPushConn(url);
+            HttpURLConnection conn = createNTFYConn(url);
+
+            // Add the content
+            // Remove newlines from the title
+            conn.setRequestProperty("Title", "\uD83D\uDD38" + message.getContent().replace("\n", "\uD83D\uDD38"));
+            conn.setRequestProperty("Click", String.format("https://discord.com/channels/%s/%s/%s", serverId,
+                    channelId, message.getId()));
+
+            // Write the body of the message (which in this case, is just the "Quoted by" string)
+            OutputStream os = conn.getOutputStream();
+            OutputStreamWriter osw = new OutputStreamWriter(os, StandardCharsets.UTF_8);
+            osw.write("Quoted by: " + message.getAuthor().getName(serverId));
+            osw.flush();
+            osw.close();
+            os.close();  //don't forget to close the OutputStream
+
 
             // Make the request
             makeRequest(conn);
