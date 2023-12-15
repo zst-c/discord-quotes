@@ -40,6 +40,9 @@ public class Message {
         return author;
     }
 
+    public @NotNull List<Mention> getMentions() {
+        return mentions;
+    }
 
     /**
      * Given a server's ID, 'clean' up the message's content, to fix the mentions from being <@ID> to being
@@ -77,7 +80,7 @@ public class Message {
                 content = content.replace(group, mentionsMap.get(id));
             }
         }
-        
+
         return this;
     }
 }

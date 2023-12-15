@@ -3,7 +3,9 @@ package org.example;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import io.github.cdimascio.dotenv.Dotenv;
+import org.example.discordObjects.Mention;
 import org.example.discordObjects.Message;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -11,6 +13,7 @@ import java.lang.reflect.Type;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.lang.Thread.sleep;
 import static org.example.APICalls.API.*;
@@ -67,6 +70,9 @@ public class Main {
 
             System.out.printf("%d quotes fetched so far.\n", quotes.size());
         }
+
+        // Filter quotes only to be those where people who've opted-in are mentioned
+        quotes = filterOptIn(quotes);
 
         // Get a random quote from the list
         Message randQuote = quotes.get(new Random().nextInt(quotes.size()));
@@ -175,6 +181,28 @@ public class Main {
             System.err.println("An error occurred when trying to make HTTP requests in getListOfMessages: " + e.getMessage());
             return new ArrayList<>();
         }
+
+    }
+
+    /**
+     * This takes in a list of messages, and filters them to only be ones which directly mention only people who've
+     * opted-in. This reads in the comma-separated list of IDs in the .env file.
+     *
+     * @param allMessages The list of all messages
+     * @return A filtered list of messages from only those who've opted-in
+     */
+    private static @NotNull List<Message> filterOptIn(@NotNull List<Message> allMessages) {
+
+        List<String> optIns = List.of(ENV.get("OPT_INS").split(","));
+
+        // Only take messages which mention people, because they're the easiest to filter.
+        // Then, filter only those where all mentions have opted-in
+        return allMessages.parallelStream().filter(x -> !x.getMentions().isEmpty())
+                // Ensure that all mentions are in the optIns list
+                .filter(x -> new HashSet<>(optIns).containsAll(
+                        // Map each mention to their ID and collect again
+                        x.getMentions().stream().map(Mention::getId)
+                                .collect(Collectors.toSet()))).toList();
 
     }
 }
