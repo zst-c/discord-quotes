@@ -54,7 +54,7 @@ public class Message {
     public Message fixContent(String serverId) {
 
         // This matches things of the form <@ID> or <@!ID>
-        String reString = "<@!?\\d{18,19}>";
+        String reString = "<@!?\\d{15,20}>";
         Pattern regex = Pattern.compile(reString);
 
         // Check there are any matches
