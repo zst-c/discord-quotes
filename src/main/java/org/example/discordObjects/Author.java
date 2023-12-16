@@ -5,7 +5,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-import static org.example.APICalls.API.getServerNickname;
+import static org.example.apiCalls.API.getServerNickname;
 
 /**
  * This is an Author object, which contains the author of a message

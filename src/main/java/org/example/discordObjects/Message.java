@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.example.APICalls.API.getServerNickname;
+import static org.example.apiCalls.API.getServerNickname;
 
 /**
  * This is a Message object, which represents a message sent

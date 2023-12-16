@@ -16,7 +16,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.lang.Thread.sleep;
-import static org.example.APICalls.API.*;
+import static org.example.apiCalls.API.*;
+import static org.example.util.Util.OutputFormat.ERROR;
+import static org.example.util.Util.OutputFormat.STDOUT;
+import static org.example.util.Util.printOutput;
 
 
 public class Main {
@@ -45,8 +48,8 @@ public class Main {
                 //noinspection BusyWait
                 sleep(1000);
             } catch (InterruptedException e) {
-                System.err.println("Thread was interrupted whilst trying to sleep: " +
-                        e.getMessage() + "\nContinuing...");
+                printOutput("Thread was interrupted whilst trying to sleep: " +
+                        e.getMessage() + "\nContinuing...", ERROR);
             }
 
             // Get a list of the next 50 messages
@@ -68,7 +71,7 @@ public class Main {
                 break;
             }
 
-            System.out.printf("%d quotes fetched so far.\n", quotes.size());
+            printOutput(String.format("%d quotes fetched so far.", quotes.size()), STDOUT);
         }
 
         // Filter quotes only to be those where people who've opted-in are mentioned
@@ -80,17 +83,20 @@ public class Main {
         // "Fix" the content - i.e., just replace any raw user IDs with their server nicknames
         randQuote = randQuote.fixContent(ENV.get("SERVER_ID"));
 
+        // Print for logging
+        printOutput("Quote is: " + randQuote.getContent(), STDOUT);
+
         // Try to send the quote as a push notification.
         // If this is true, then the message failed to send. In that case, try to send again and if it still
         // fails, just print the error and exit.
         if (pushMessage(randQuote, ENV.get("SERVER_ID"), ENV.get("CHANNEL_ID"))) {
             if (pushMessage(randQuote, ENV.get("SERVER_ID"), ENV.get("CHANNEL_ID"))) {
-                System.err.println("Failed to send the push notification; tried twice.");
+                printOutput("Failed to send the push notification; tried twice.", ERROR);
             } else {
-                System.out.println("Successfully sent push notification on the second attempt.");
+                printOutput("Successfully sent push notification on the second attempt.", STDOUT);
             }
         } else {
-            System.out.println("Successfully sent push notification.");
+            printOutput("Successfully sent push notification.", STDOUT);
         }
     }
 
@@ -135,7 +141,7 @@ public class Main {
             return false;
 
         } catch (Exception e) {
-            System.err.println("An error occurred when calling pushMessage: " + e.getMessage());
+            printOutput("An error occurred when calling pushMessage: " + e.getMessage(), ERROR);
             return true;
         }
     }
@@ -161,7 +167,7 @@ public class Main {
                 url = new URL("https://discord.com/api/v9/channels/" + ENV.get("CHANNEL_ID") + "/messages?limit=50");
             }
         } catch (MalformedURLException e) {
-            System.err.println("An error occurred when trying to form the URL in getListOfMessages: " + e.getMessage());
+            printOutput("An error occurred when trying to form the URL in getListOfMessages: " + e.getMessage(), ERROR);
             return new ArrayList<>();
         }
 
@@ -178,7 +184,8 @@ public class Main {
             }.getType();
             return (new Gson().fromJson(response, listType));
         } catch (Exception e) {
-            System.err.println("An error occurred when trying to make HTTP requests in getListOfMessages: " + e.getMessage());
+            printOutput("An error occurred when trying to make HTTP requests in getListOfMessages: " + e.getMessage(),
+                    ERROR);
             return new ArrayList<>();
         }
 

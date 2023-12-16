@@ -1,4 +1,4 @@
-package org.example.APICalls;
+package org.example.apiCalls;
 
 import com.google.gson.Gson;
 import io.github.cdimascio.dotenv.Dotenv;
@@ -9,6 +9,9 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+
+import static org.example.util.Util.OutputFormat.ERROR;
+import static org.example.util.Util.printOutput;
 
 
 public class API {
@@ -36,7 +39,7 @@ public class API {
 
             return user.getNickname(serverId);
         } catch (IOException e) {
-            System.err.println("An error occurred when trying to send off an HTTP request in getServerNickname: " + e.getMessage());
+            printOutput("An error occurred when trying to send off an HTTP request in getServerNickname: " + e.getMessage(), ERROR);
             return "";
         }
     }
@@ -83,7 +86,7 @@ public class API {
 
             conn.setDoOutput(true);
             conn.setRequestProperty("Authorization", "Bearer " + ENV.get("NTFY_TOKEN"));
-            
+
             return conn;
         } catch (IOException e) {
             throw new Exception("An error occurred when configuring a URL in createNTFYConn: " + e.getMessage());
@@ -111,7 +114,7 @@ public class API {
 
             return String.valueOf(response);
         } catch (IOException e) {
-            System.err.println("An error occurred when calling makeRequest: " + e.getMessage());
+            printOutput("An error occurred when calling makeRequest: " + e.getMessage(), ERROR);
             return "";
         }
     }
