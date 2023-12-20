@@ -5,7 +5,6 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.ISnowflake;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,7 +37,7 @@ public class Main {
         // Start the JDA, and wait for it to be ready
         JDA jda = startBot();
 
-        TextChannel channel = jda.getTextChannelById(ENV.get("CHANNEL_ID"));
+        MessageChannel channel = jda.getChannelById(MessageChannel.class, ENV.get("CHANNEL_ID"));
 
         if (channel == null) {
             printOutput(String.format("Could not get channel with ID %s. Exiting...", ENV.get("CHANNEL_ID")), ERROR);
